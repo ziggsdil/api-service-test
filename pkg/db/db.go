@@ -38,11 +38,10 @@ func (db *Database) AddPerson(ctx context.Context, person *Person) error {
 	return err
 }
 
-// todo: возможно нужно обновлять отдельные части
-//func (db *Database) Update(ctx context.Context, id string) error {
-//	_, err := db.client.ExecContext(ctx, updatePersonById, id)
-//	return nil
-//}
+func (db *Database) Update(ctx context.Context, id string) error {
+	_, err := db.client.ExecContext(ctx, updatePersonById, id)
+	return nil
+}
 
 func (db *Database) Init(ctx context.Context) error {
 	_, err := db.client.ExecContext(ctx, initRequest)

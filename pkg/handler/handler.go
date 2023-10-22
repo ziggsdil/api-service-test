@@ -30,7 +30,7 @@ func (h *Handler) Router() chi.Router {
 			fmt.Fprintf(w, "Server is alive!")
 		})
 		r.Route("/admin", func(r chi.Router) {
-			r.Delete("/delete", h.Delete)
+			r.Delete("/{id}", h.Delete)
 			r.Put("/update", h.Update)
 			r.Post("/add", h.Add)
 		})
@@ -38,22 +38,3 @@ func (h *Handler) Router() chi.Router {
 
 	return router
 }
-
-// todo: delete by id
-func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	id := chi.URLParam(r, "id")
-
-	err := h.db.Delete(ctx, id)
-	if err != nil {
-
-	}
-}
-
-// todo: update person by id
-func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
-
-}
-
-// todo: add person
