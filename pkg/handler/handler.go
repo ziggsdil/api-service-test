@@ -31,7 +31,7 @@ func (h *Handler) Router() chi.Router {
 		})
 		r.Route("/admin", func(r chi.Router) {
 			r.Delete("/{id}", h.Delete)
-			r.Put("/update", h.Update)
+			r.Put("/{id}", h.Update)
 			r.Post("/add", h.Add)
 		})
 	})

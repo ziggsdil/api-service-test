@@ -6,6 +6,7 @@ import (
 	"github.com/ziggsdil/api-service-test/pkg/db"
 	"io"
 	"net/http"
+	"sync"
 )
 
 const (
@@ -16,6 +17,7 @@ const (
 
 func (h *Handler) Add(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	wg := &sync.WaitGroup{}
 
 	var person db.Person
 
@@ -25,21 +27,37 @@ func (h *Handler) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	person.Age, err = GetAge(person.Name)
-	if err != nil {
-		h.renderer.RenderError(w, err)
-		return
-	}
-	person.Gender, err = GetGender(person.Name)
-	if err != nil {
-		h.renderer.RenderError(w, err)
-		return
-	}
-	person.Nationality, err = GetNationality(person.Name)
-	if err != nil {
-		h.renderer.RenderError(w, err)
-		return
-	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		person.Age, err = GetAge(person.Name)
+		if err != nil {
+			h.renderer.RenderError(w, err)
+			return
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		person.Gender, err = GetGender(person.Name)
+		if err != nil {
+			h.renderer.RenderError(w, err)
+			return
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		wg.Done()
+		person.Nationality, err = GetNationality(person.Name)
+		if err != nil {
+			h.renderer.RenderError(w, err)
+			return
+		}
+	}()
+
+	wg.Wait()
 
 	err = h.db.AddPerson(ctx, &person)
 	if err != nil {
