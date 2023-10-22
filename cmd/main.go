@@ -60,7 +60,7 @@ func main() {
 
 	go func() {
 		// todo: log and info
-		fmt.Printf("Starting server at %s", srv.Addr)
+		fmt.Printf("Starting server at %s\n", srv.Addr)
 		_ = srv.ListenAndServe()
 	}()
 

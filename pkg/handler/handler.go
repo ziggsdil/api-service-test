@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/ziggsdil/api-service-test/pkg/db"
+	"github.com/ziggsdil/api-service-test/pkg/renderer"
 	"net/http"
 )
 
 type Handler struct {
-	db *db.Database
+	db       *db.Database
+	renderer renderer.Renderer
 
 	url string
 }
@@ -27,7 +29,31 @@ func (h *Handler) Router() chi.Router {
 		r.Get("/info", func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "Server is alive!")
 		})
+		r.Route("/admin", func(r chi.Router) {
+			r.Delete("/delete", h.Delete)
+			r.Put("/update", h.Update)
+			r.Post("/add", h.Add)
+		})
 	})
 
 	return router
 }
+
+// todo: delete by id
+func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	id := chi.URLParam(r, "id")
+
+	err := h.db.Delete(ctx, id)
+	if err != nil {
+
+	}
+}
+
+// todo: update person by id
+func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
+
+}
+
+// todo: add person
