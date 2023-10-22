@@ -3,6 +3,14 @@ ifneq (,$(wildcard ./.env))
 	export
 endif
 
+ifndef APP_PORT
+export APP_PORT=8000
+endif
+
+ifndef APP_HOST
+export APP_HOST=127.0.0.1
+endif
+
 HELP_FUNC = \
 	%help; while(<>){push@{$$help{$$2//'options'}},[$$1,$$3] \
 	if/^([\w-_]+)\s*:.*\#\#(?:@(\w+))?\s(.*)$$/}; \
@@ -13,6 +21,9 @@ HELP_FUNC = \
 help: ##@Help Show this help
 	@echo -e "Usage: make [target] ...\n"
 	@perl -e '$(HELP_FUNC)' $(MAKEFILE_LIST)
+
+run:
+	go run ../cmd/ --config ../deploy
 
 db: ##@Database Create database with docker-compose
 	docker-compose -f docker-compose.yml -d --remove-orphans
