@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gookit/slog"
 	"github.com/ziggsdil/api-service-test/pkg/db"
 	"io"
 	"net/http"
@@ -30,31 +31,37 @@ func (h *Handler) Add(w http.ResponseWriter, r *http.Request) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		slog.Infof("Starting goroutine api service age for %s", person.Name)
 		person.Age, err = GetAge(person.Name)
 		if err != nil {
 			h.renderer.RenderError(w, err)
 			return
 		}
+		slog.Infof("Goroutine is finished Person age: %d", person.Age)
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		slog.Infof("Starting goroutine api service gender for %s", person.Name)
 		person.Gender, err = GetGender(person.Name)
 		if err != nil {
 			h.renderer.RenderError(w, err)
 			return
 		}
+		slog.Infof("Goroutine is finished Person gender: %s", person.Gender)
 	}()
 
 	wg.Add(1)
 	go func() {
-		wg.Done()
+		defer wg.Done()
+		slog.Infof("Starting goroutine api service nationality for %s", person.Name)
 		person.Nationality, err = GetNationality(person.Name)
 		if err != nil {
 			h.renderer.RenderError(w, err)
 			return
 		}
+		slog.Infof("Goroutine is finished Person nationality: %s", person.Nationality)
 	}()
 
 	wg.Wait()
@@ -64,8 +71,7 @@ func (h *Handler) Add(w http.ResponseWriter, r *http.Request) {
 		h.renderer.RenderError(w, err)
 		return
 	}
-	// todo: log and info
-	fmt.Printf("Person added: %+v", person)
+	slog.Infof("Person added: %+v", person)
 }
 
 type AgifyResponse struct {

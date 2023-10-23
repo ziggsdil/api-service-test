@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/go-chi/chi/v5"
+	"github.com/gookit/slog"
 	"net/http"
 )
 
@@ -12,7 +13,9 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	err := h.db.Delete(ctx, id)
 	if err != nil {
+		slog.Errorf("Failed to delete person: %v with id: %s", err.Error(), id)
 		h.renderer.RenderError(w, err)
 		return
 	}
+	slog.Infof("Successfully deleted person with id: %s", id)
 }

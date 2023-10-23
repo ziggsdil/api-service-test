@@ -50,3 +50,13 @@ func (e BadRequest) Code() int {
 }
 
 // custom errors
+
+type NameCannotChangeError struct{}
+
+func (e NameCannotChangeError) Error() string {
+	return "NAME_CANNOT_CHANGE"
+}
+
+func (e NameCannotChangeError) Code() int {
+	return http.StatusBadRequest
+}

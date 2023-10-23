@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/gookit/slog"
 	"reflect"
 	"strconv"
 	"strings"
@@ -22,7 +23,6 @@ func NewDatabase(cfg Config) (*Database, error) {
 
 	client, err := sql.Open("postgres", connInfo)
 	if err != nil {
-		// todo: log and info
 		return nil, err
 	}
 	return &Database{
@@ -37,7 +37,8 @@ func (db *Database) Delete(ctx context.Context, id string) error {
 
 func (db *Database) AddPerson(ctx context.Context, person *Person) error {
 	person.Id = uuid.New()
-	_, err := db.client.ExecContext(ctx, addPerson, person.Id, person.Name, person.Surname, person.Patronymic, person.Age, person.Gender, person.Nationality)
+	_, err := db.client.ExecContext(ctx, addPerson,
+		person.Id, person.Name, person.Surname, person.Patronymic, person.Age, person.Gender, person.Nationality)
 	return err
 }
 
@@ -74,62 +75,77 @@ func (db *Database) Update(ctx context.Context, person Person) error {
 			values = append(values, value.Interface())
 		}
 	}
-	// todo: если меняется имя, то необходимо менять и все остальные данные которые зависят от имени.
 
 	query.WriteString(strings.Join(setClauses, ", "))
 	query.WriteString(" WHERE person_uuid = $" + strconv.Itoa(idx))
 	values = append(values, person.Id)
-	fmt.Println(query.String(), values)
+	slog.Infof("Request for update person with id: %s with values: %+v", person.Id, values)
 
 	_, err := db.client.ExecContext(ctx, query.String(), values...)
 	return err
 }
 
-//func (db *Database) Update(ctx context.Context, person Person) error {
-//	var query strings.Builder
-//	query.WriteString("UPDATE person SET")
-//
-//	var values []interface{}
-//	var setClauses []string
-//
-//	if person.Name != "" {
-//		setClauses = append(setClauses, "name = ?")
-//		values = append(values, person.Name)
-//	}
-//	if person.Surname != "" {
-//		setClauses = append(setClauses, "surname = ?")
-//		values = append(values, person.Surname)
-//	}
-//	if person.Patronymic != "" {
-//		setClauses = append(setClauses, "patronymic = ?")
-//		values = append(values, person.Patronymic)
-//	}
-//	if person.Age != 0 {
-//		setClauses = append(setClauses, "age = ?")
-//		values = append(values, person.Age)
-//	}
-//	if person.Gender != "" {
-//		setClauses = append(setClauses, "gender = ?")
-//		values = append(values, person.Gender)
-//	}
-//	if person.Nationality != "" {
-//		setClauses = append(setClauses, "nationality = ?")
-//		values = append(values, person.Nationality)
-//	}
-//
-//	query.WriteString(strings.Join(setClauses, ", "))
-//	query.WriteString(" WHERE person_uuid = ?")
-//	values = append(values, person.Id)
-//
-//	_, err := db.client.ExecContext(ctx, query.String(), values...)
-//	return err
-//}
+func (db *Database) Users(ctx context.Context) ([]*Person, error) {
+	var people []*Person
+	rows, err := db.client.QueryContext(ctx, selectPeople)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var person Person
+		err = rows.Scan(
+			&person.Id, &person.Name, &person.Surname, &person.Patronymic, &person.Age, &person.Gender, &person.Nationality,
+		)
+		if err != nil {
+			return nil, err
+		}
+		people = append(people, &person)
+	}
+	return people, nil
+}
 
 func (db *Database) Init(ctx context.Context) error {
 	_, err := db.client.ExecContext(ctx, initRequest)
 	return err
 }
 
-func (db *Database) Close() error {
-	return db.client.Close()
+func (db *Database) queryUsers(ctx context.Context, query string, arg string) ([]*Person, error) {
+	var people []*Person
+	rows, err := db.client.QueryContext(ctx, query, arg)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var person Person
+		err = rows.Scan(
+			&person.Id, &person.Name, &person.Surname, &person.Patronymic, &person.Age, &person.Gender, &person.Nationality,
+		)
+		if err != nil {
+			return nil, err
+		}
+		people = append(people, &person)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return people, nil
+}
+
+func (db *Database) UsersByAge(ctx context.Context, age string) ([]*Person, error) {
+	return db.queryUsers(ctx, selectPeopleByAge, age)
+}
+
+func (db *Database) UsersByGender(ctx context.Context, gender string) ([]*Person, error) {
+	return db.queryUsers(ctx, selectPeopleByGender, gender)
+}
+
+func (db *Database) UsersByNationality(ctx context.Context, nationality string) ([]*Person, error) {
+	return db.queryUsers(ctx, selectPeopleByNationality, nationality)
+}
+
+func (db *Database) UsersByName(ctx context.Context, surname string) ([]*Person, error) {
+	return db.queryUsers(ctx, selectPeopleByName, surname)
 }

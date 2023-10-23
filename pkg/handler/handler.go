@@ -34,6 +34,12 @@ func (h *Handler) Router() chi.Router {
 			r.Put("/{id}", h.Update)
 			r.Post("/add", h.Add)
 		})
+		r.Get("/users/{id}", h.Get)
+		r.Get("/users/", h.GetAll)
+		r.Get("/users/age", h.GetByAge)
+		r.Get("/users/gender", h.GetByGender)
+		r.Get("/users/nationality", h.GetByNationality)
+		r.Get("/users/name", h.GetByName)
 	})
 
 	return router

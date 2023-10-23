@@ -32,12 +32,32 @@ const (
 		WHERE person_uuid = $1
 	`
 
-	//updatePerson = `
-	//	UPDATE person
-	//	SET name = $1, surname = $2, age = $3
-	//	WHERE person_uuid = $4;
-	//`
-	updatePerson = `
-	UPDATE person SET Surname = $1, Age = $2 WHERE person_uuid = $3
-`
+	selectPeople = `
+		SELECT person_uuid, name, surname, patronymic, age, gender, nationality
+		FROM person
+	`
+
+	selectPeopleByAge = `
+		SELECT person_uuid, name, surname, patronymic, age, gender, nationality
+		FROM person
+		WHERE age = $1
+	`
+
+	selectPeopleByGender = `
+		SELECT person_uuid, name, surname, patronymic, age, gender, nationality
+		FROM person
+		WHERE gender = $1
+	`
+
+	selectPeopleByNationality = `
+		SELECT person_uuid, name, surname, patronymic, age, gender, nationality
+		FROM person
+		WHERE nationality = $1
+	`
+
+	selectPeopleByName = `
+		SELECT person_uuid, name, surname, patronymic, age, gender, nationality
+		FROM person
+		WHERE name = $1
+	`
 )

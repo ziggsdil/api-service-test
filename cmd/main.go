@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/gookit/slog"
 	"github.com/heetch/confita"
 	"github.com/heetch/confita/backend/env"
 	_ "github.com/lib/pq"
@@ -24,6 +25,9 @@ func init() {
 }
 
 func main() {
+	slog.SetFormatter(slog.NewJSONFormatter())
+	slog.Info("Starting application")
+
 	ctx := context.Background()
 
 	var cfg config.Config
@@ -32,25 +36,24 @@ func main() {
 		env.NewBackend(),
 	).Load(ctx, &cfg)
 	if err != nil {
-		// todo: log and info
-		fmt.Printf("Failed to load config: %v", err.Error())
+		slog.Errorf("Failed to load config: %v", err.Error())
 		return
 	}
+	slog.Info("Config loaded")
 
 	postgres, err := db.NewDatabase(cfg.Postgres)
-	fmt.Println(cfg)
 	if err != nil {
-		// todo: log and info
-		fmt.Printf("Failed to connect to postgres: %v", err.Error())
+		slog.Errorf("Failed to connect to postgres: %v", err.Error())
 		return
 	}
+	slog.Info("Connected to postgres")
 
 	err = postgres.Init(ctx)
 	if err != nil {
-		// todo: log and info
-		fmt.Printf("Failed to use migrate and init postgres: %v", err.Error())
+		slog.Errorf("Failed to use migrate and init postgres: %v", err.Error())
 		return
 	}
+	slog.Info("Successfully use migrate and init postgres")
 
 	handlers := handler.NewHandler(postgres, fmt.Sprintf("%s:%s", cfg.Host, cfg.Port))
 	srv := &http.Server{
@@ -59,8 +62,7 @@ func main() {
 	}
 
 	go func() {
-		// todo: log and info
-		fmt.Printf("Starting server at %s\n", srv.Addr)
+		slog.Infof("Starting server at %s", srv.Addr)
 		_ = srv.ListenAndServe()
 	}()
 
