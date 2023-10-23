@@ -4,11 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/gookit/slog"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/google/uuid"
+	"github.com/gookit/slog"
 )
 
 type Database struct {
@@ -31,21 +32,21 @@ func NewDatabase(cfg Config) (*Database, error) {
 }
 
 func (db *Database) Delete(ctx context.Context, id string) error {
-	_, err := db.client.ExecContext(ctx, deletePersonById, id)
+	_, err := db.client.ExecContext(ctx, deletePersonByID, id)
 	return err
 }
 
 func (db *Database) AddPerson(ctx context.Context, person *Person) error {
-	person.Id = uuid.New()
+	person.ID = uuid.New()
 	_, err := db.client.ExecContext(ctx, addPerson,
-		person.Id, person.Name, person.Surname, person.Patronymic, person.Age, person.Gender, person.Nationality)
+		person.ID, person.Name, person.Surname, person.Patronymic, person.Age, person.Gender, person.Nationality)
 	return err
 }
 
-func (db *Database) UserById(ctx context.Context, id string) (*Person, error) {
+func (db *Database) UserByID(ctx context.Context, id string) (*Person, error) {
 	var person Person
-	err := db.client.QueryRowContext(ctx, selectPersonById, id).Scan(
-		&person.Id, &person.Name, &person.Surname, &person.Patronymic, &person.Age, &person.Gender, &person.Nationality,
+	err := db.client.QueryRowContext(ctx, selectPersonByID, id).Scan(
+		&person.ID, &person.Name, &person.Surname, &person.Patronymic, &person.Age, &person.Gender, &person.Nationality,
 	)
 	if err != nil {
 		return nil, err
@@ -69,7 +70,7 @@ func (db *Database) Update(ctx context.Context, person Person) error {
 		field := t.Field(i)
 		value := v.Field(i)
 
-		if !value.IsZero() && field.Name != "Id" {
+		if !value.IsZero() && field.Name != "ID" {
 			setClauses = append(setClauses, field.Name+" = $"+strconv.Itoa(idx))
 			idx++
 			values = append(values, value.Interface())
@@ -78,8 +79,8 @@ func (db *Database) Update(ctx context.Context, person Person) error {
 
 	query.WriteString(strings.Join(setClauses, ", "))
 	query.WriteString(" WHERE person_uuid = $" + strconv.Itoa(idx))
-	values = append(values, person.Id)
-	slog.Infof("Request for update person with id: %s with values: %+v", person.Id, values)
+	values = append(values, person.ID)
+	slog.Infof("Request for update person with id: %s with values: %+v", person.ID, values)
 
 	_, err := db.client.ExecContext(ctx, query.String(), values...)
 	return err
@@ -91,11 +92,15 @@ func (db *Database) Users(ctx context.Context) ([]*Person, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+	if rows.Err() != nil {
+		return nil, err
+	}
 
 	for rows.Next() {
 		var person Person
 		err = rows.Scan(
-			&person.Id, &person.Name, &person.Surname, &person.Patronymic, &person.Age, &person.Gender, &person.Nationality,
+			&person.ID, &person.Name, &person.Surname, &person.Patronymic, &person.Age, &person.Gender, &person.Nationality,
 		)
 		if err != nil {
 			return nil, err
@@ -112,16 +117,20 @@ func (db *Database) Init(ctx context.Context) error {
 
 func (db *Database) queryUsers(ctx context.Context, query string, arg string) ([]*Person, error) {
 	var people []*Person
-	rows, err := db.client.QueryContext(ctx, query, arg)
+	const dataLimit = 10
+	rows, err := db.client.QueryContext(ctx, query, arg, dataLimit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
+	if rows.Err() != nil {
+		return nil, err
+	}
 
 	for rows.Next() {
 		var person Person
 		err = rows.Scan(
-			&person.Id, &person.Name, &person.Surname, &person.Patronymic, &person.Age, &person.Gender, &person.Nationality,
+			&person.ID, &person.Name, &person.Surname, &person.Patronymic, &person.Age, &person.Gender, &person.Nationality,
 		)
 		if err != nil {
 			return nil, err

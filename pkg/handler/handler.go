@@ -2,10 +2,12 @@ package handler
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
+
 	"github.com/ziggsdil/api-service-test/pkg/db"
 	"github.com/ziggsdil/api-service-test/pkg/renderer"
-	"net/http"
 )
 
 type Handler struct {
@@ -18,7 +20,7 @@ type Handler struct {
 func NewHandler(db *db.Database, url string) *Handler {
 	return &Handler{
 		db:  db,
-		url: fmt.Sprintf("%s", url),
+		url: url,
 	}
 }
 

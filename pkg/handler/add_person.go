@@ -3,17 +3,19 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gookit/slog"
-	"github.com/ziggsdil/api-service-test/pkg/db"
 	"io"
 	"net/http"
 	"sync"
+
+	"github.com/gookit/slog"
+
+	"github.com/ziggsdil/api-service-test/pkg/db"
 )
 
 const (
-	ageApi      = "https://api.agify.io/?name=%s"
-	genderApi   = "https://api.genderize.io/?name=%s"
-	nationalApi = "https://api.nationalize.io/?name=%s"
+	ageAPI      = "https://api.agify.io/?name=%s"
+	genderAPI   = "https://api.genderize.io/?name=%s"
+	nationalAPI = "https://api.nationalize.io/?name=%s"
 )
 
 func (h *Handler) Add(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +84,7 @@ type AgifyResponse struct {
 
 func GetAge(name string) (int, error) {
 	var agifyResponse AgifyResponse
-	err := fetchData(fmt.Sprintf(ageApi, name), &agifyResponse)
+	err := fetchData(fmt.Sprintf(ageAPI, name), &agifyResponse)
 	if err != nil {
 		return 0, err
 	}
@@ -98,7 +100,7 @@ type GenderizeResponse struct {
 
 func GetGender(name string) (string, error) {
 	var genderizeResponse GenderizeResponse
-	err := fetchData(fmt.Sprintf(genderApi, name), &genderizeResponse)
+	err := fetchData(fmt.Sprintf(genderAPI, name), &genderizeResponse)
 	if err != nil {
 		return "", err
 	}
@@ -116,15 +118,16 @@ type NationalityResponse struct {
 
 func GetNationality(name string) (string, error) {
 	var nationalityResponse NationalityResponse
-	err := fetchData(fmt.Sprintf(nationalApi, name), &nationalityResponse)
+	err := fetchData(fmt.Sprintf(nationalAPI, name), &nationalityResponse)
 	if err != nil {
 		return "", err
 	}
 	return nationalityResponse.Country[0].CountryName, nil // так как ответ уже отсортирован по убыванию
 }
 
-func fetchData(apiUrl string, responseData interface{}) error {
-	resp, err := http.Get(apiUrl)
+func fetchData(apiURL string, responseData interface{}) error {
+	//nolint: gosec
+	resp, err := http.Get(apiURL)
 	if err != nil {
 		return err
 	}

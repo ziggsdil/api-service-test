@@ -4,17 +4,19 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/gookit/slog"
-	"github.com/heetch/confita"
-	"github.com/heetch/confita/backend/env"
-	_ "github.com/lib/pq"
-	"github.com/ziggsdil/api-service-test/pkg/config"
-	"github.com/ziggsdil/api-service-test/pkg/db"
-	"github.com/ziggsdil/api-service-test/pkg/handler"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/gookit/slog"
+	"github.com/heetch/confita"
+	"github.com/heetch/confita/backend/env"
+	_ "github.com/lib/pq"
+
+	"github.com/ziggsdil/api-service-test/pkg/config"
+	"github.com/ziggsdil/api-service-test/pkg/db"
+	"github.com/ziggsdil/api-service-test/pkg/handler"
 )
 
 var configPath string
@@ -57,8 +59,10 @@ func main() {
 
 	handlers := handler.NewHandler(postgres, fmt.Sprintf("%s:%s", cfg.Host, cfg.Port))
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", cfg.Port),
-		Handler: handlers.Router(),
+		Addr:         fmt.Sprintf(":%s", cfg.Port),
+		Handler:      handlers.Router(),
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	go func() {

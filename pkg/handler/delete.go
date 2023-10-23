@@ -1,9 +1,10 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/gookit/slog"
-	"net/http"
 )
 
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {

@@ -13,11 +13,7 @@ const (
 	);
 `
 
-	dropRequest = `
-		DROP TABLE IF EXISTS person;
-	`
-
-	deletePersonById = `
+	deletePersonByID = `
 		DELETE FROM person WHERE person_uuid = $1;
 	`
 
@@ -26,7 +22,7 @@ const (
 		VALUES ($1, $2, $3, $4, $5, $6, $7);
 	`
 
-	selectPersonById = `
+	selectPersonByID = `
 		SELECT person_uuid, name, surname, patronymic, age, gender, nationality
 		FROM person
 		WHERE person_uuid = $1
@@ -35,29 +31,34 @@ const (
 	selectPeople = `
 		SELECT person_uuid, name, surname, patronymic, age, gender, nationality
 		FROM person
+		LIMIT $2
 	`
 
 	selectPeopleByAge = `
 		SELECT person_uuid, name, surname, patronymic, age, gender, nationality
 		FROM person
 		WHERE age = $1
+		LIMIT $2
 	`
 
 	selectPeopleByGender = `
 		SELECT person_uuid, name, surname, patronymic, age, gender, nationality
 		FROM person
 		WHERE gender = $1
+		LIMIT $2
 	`
 
 	selectPeopleByNationality = `
 		SELECT person_uuid, name, surname, patronymic, age, gender, nationality
 		FROM person
 		WHERE nationality = $1
+		LIMIT $2
 	`
 
 	selectPeopleByName = `
 		SELECT person_uuid, name, surname, patronymic, age, gender, nationality
 		FROM person
 		WHERE name = $1
+		LIMIT $2
 	`
 )

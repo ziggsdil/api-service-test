@@ -31,3 +31,6 @@ db: ##@Database Create database with docker-compose
 open_db: ##@Database Open database console inside docker image
 	docker exec -it name_postgres psql -d $(POSTGRES_DB) -U $(POSTGRES_USER)
 
+lint: ##Service Check service in linters
+	golangci-lint run --print-issued-lines=false --out-format code-climate:gl-code-quality-report.json,line-number --timeout=10m
+

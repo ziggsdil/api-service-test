@@ -9,5 +9,3 @@ services:
       - ./.env
     ports:
       - '${POSTGRES_PORT}:${POSTGRES_PORT}'
-#    volumes:
-#      - ./create_table.sql:/docker-entrypoint-initdb.d/1-create_table.sql

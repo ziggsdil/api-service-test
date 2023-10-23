@@ -2,12 +2,14 @@ package handler
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/gookit/slog"
+
 	"github.com/ziggsdil/api-service-test/pkg/db"
 	"github.com/ziggsdil/api-service-test/pkg/errors"
-	"net/http"
 )
 
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +31,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := chi.URLParam(r, "id")
-	updatedPerson.Id, err = uuid.Parse(id)
+	updatedPerson.ID, err = uuid.Parse(id)
 	if err != nil {
 		h.renderer.RenderError(w, err)
 		return

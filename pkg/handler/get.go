@@ -3,11 +3,13 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/gookit/slog"
+
 	"github.com/ziggsdil/api-service-test/pkg/db"
 	apierrors "github.com/ziggsdil/api-service-test/pkg/errors"
-	"net/http"
 )
 
 func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
@@ -16,7 +18,7 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	var person *db.Person
-	person, err := h.db.UserById(ctx, id)
+	person, err := h.db.UserByID(ctx, id)
 	if err != nil {
 		slog.Errorf("Failed to get person: %v with id: %s", err.Error(), id)
 		h.renderer.RenderError(w, apierrors.NotFoundError{})

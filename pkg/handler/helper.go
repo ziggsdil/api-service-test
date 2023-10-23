@@ -2,8 +2,9 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/gookit/slog"
 	"io"
+
+	"github.com/gookit/slog"
 )
 
 func (h *Handler) parseBody(from io.ReadCloser, to interface{}) error {
