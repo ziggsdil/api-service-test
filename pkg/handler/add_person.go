@@ -68,6 +68,7 @@ func (h *Handler) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	slog.Infof("Person added: %+v", person)
+	h.renderer.RenderOK(w)
 }
 
 func (h *Handler) handleError(w http.ResponseWriter, errs ...error) bool {
