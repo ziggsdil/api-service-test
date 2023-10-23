@@ -30,15 +30,13 @@ func (h *Handler) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var ageErr, genderErr, nationalityErr error
+	errs := make([]error, 0, 3)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		slog.Infof("Starting goroutine api service age for %s", person.Name)
-		person.Age, err = GetAge(person.Name)
-		if err != nil {
-			h.renderer.RenderError(w, err)
-			return
-		}
+		person.Age, ageErr = GetAge(person.Name)
 		slog.Infof("Goroutine is finished Person age: %d", person.Age)
 	}()
 
@@ -46,11 +44,7 @@ func (h *Handler) Add(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer wg.Done()
 		slog.Infof("Starting goroutine api service gender for %s", person.Name)
-		person.Gender, err = GetGender(person.Name)
-		if err != nil {
-			h.renderer.RenderError(w, err)
-			return
-		}
+		person.Gender, genderErr = GetGender(person.Name)
 		slog.Infof("Goroutine is finished Person gender: %s", person.Gender)
 	}()
 
@@ -58,13 +52,13 @@ func (h *Handler) Add(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer wg.Done()
 		slog.Infof("Starting goroutine api service nationality for %s", person.Name)
-		person.Nationality, err = GetNationality(person.Name)
-		if err != nil {
-			h.renderer.RenderError(w, err)
-			return
-		}
+		person.Nationality, nationalityErr = GetNationality(person.Name)
 		slog.Infof("Goroutine is finished Person nationality: %s", person.Nationality)
 	}()
+	errs = append(errs, ageErr, genderErr, nationalityErr)
+	if h.handleError(w, errs...) {
+		return
+	}
 
 	wg.Wait()
 
@@ -74,6 +68,15 @@ func (h *Handler) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	slog.Infof("Person added: %+v", person)
+}
+
+func (h *Handler) handleError(w http.ResponseWriter, errs ...error) bool {
+	slog.Errorf("Failed to add person: %v", errs[0].Error())
+	for _, err := range errs {
+		h.renderer.RenderError(w, err)
+		return true
+	}
+	return false
 }
 
 type AgifyResponse struct {
