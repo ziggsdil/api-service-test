@@ -7,19 +7,19 @@ INSTRUCTIONS:
 
 Пример запросов:
 METHOD GET: localhost:8000/admin/add
-![img_1.png](img_1.png)
+![img_1.png](images/img_1.png)
 
 METHOD GET: localhost:8000/users/
-![img.png](img.png)
+![img.png](images/img.png)
 
 METHOD GET: localhost:8000/users/age
-![img_2.png](img_2.png)
+![img_2.png](images/img_2.png)
 
 METHOD DELETE: localhost:8000/admin/
-![img_3.png](img_3.png)
+![img_3.png](images/img_3.png)
 
 METHOD PUT: localhost:8000/admin/
-![img_4.png](img_4.png)
+![img_4.png](images/img_4.png)
 
 HINTS:
 1. Проверка на linter make lint
