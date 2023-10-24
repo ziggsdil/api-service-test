@@ -31,7 +31,7 @@ const (
 	selectPeople = `
 		SELECT person_uuid, name, surname, patronymic, age, gender, nationality
 		FROM person
-		LIMIT $2
+		LIMIT $1
 	`
 
 	selectPeopleByAge = `

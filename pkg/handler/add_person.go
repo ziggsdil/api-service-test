@@ -3,13 +3,11 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gookit/slog"
+	"github.com/ziggsdil/api-service-test/pkg/db"
+	"golang.org/x/sync/errgroup"
 	"io"
 	"net/http"
-	"sync"
-
-	"github.com/gookit/slog"
-
-	"github.com/ziggsdil/api-service-test/pkg/db"
 )
 
 const (
@@ -20,7 +18,6 @@ const (
 
 func (h *Handler) Add(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	wg := &sync.WaitGroup{}
 
 	var person db.Person
 
@@ -30,37 +27,43 @@ func (h *Handler) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var ageErr, genderErr, nationalityErr error
-	errs := make([]error, 0, 3)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	var g errgroup.Group
+
+	g.Go(func() error {
 		slog.Infof("Starting goroutine api service age for %s", person.Name)
-		person.Age, ageErr = GetAge(person.Name)
+		person.Age, err = GetAge(person.Name)
+		if err != nil {
+			return err
+		}
 		slog.Infof("Goroutine is finished Person age: %d", person.Age)
-	}()
+		return nil
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	g.Go(func() error {
 		slog.Infof("Starting goroutine api service gender for %s", person.Name)
-		person.Gender, genderErr = GetGender(person.Name)
+		person.Gender, err = GetGender(person.Name)
+		if err != nil {
+			return err
+		}
 		slog.Infof("Goroutine is finished Person gender: %s", person.Gender)
-	}()
+		return nil
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	g.Go(func() error {
 		slog.Infof("Starting goroutine api service nationality for %s", person.Name)
-		person.Nationality, nationalityErr = GetNationality(person.Name)
+		person.Nationality, err = GetNationality(person.Name)
+		if err != nil {
+			return err
+		}
 		slog.Infof("Goroutine is finished Person nationality: %s", person.Nationality)
-	}()
-	errs = append(errs, ageErr, genderErr, nationalityErr)
-	if h.handleError(w, errs...) {
+		return nil
+	})
+
+	err = g.Wait()
+	if err != nil {
+		h.renderer.RenderError(w, err)
 		return
 	}
-
-	wg.Wait()
 
 	err = h.db.AddPerson(ctx, &person)
 	if err != nil {
@@ -69,15 +72,6 @@ func (h *Handler) Add(w http.ResponseWriter, r *http.Request) {
 	}
 	slog.Infof("Person added: %+v", person)
 	h.renderer.RenderOK(w)
-}
-
-func (h *Handler) handleError(w http.ResponseWriter, errs ...error) bool {
-	slog.Errorf("Failed to add person: %v", errs[0].Error())
-	for _, err := range errs {
-		h.renderer.RenderError(w, err)
-		return true
-	}
-	return false
 }
 
 type AgifyResponse struct {

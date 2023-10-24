@@ -16,6 +16,9 @@ type Database struct {
 	client *sql.DB
 }
 
+// pagination const
+const dataLimit = 10
+
 func NewDatabase(cfg Config) (*Database, error) {
 	connInfo := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
@@ -88,7 +91,7 @@ func (db *Database) Update(ctx context.Context, person Person) error {
 
 func (db *Database) Users(ctx context.Context) ([]*Person, error) {
 	var people []*Person
-	rows, err := db.client.QueryContext(ctx, selectPeople)
+	rows, err := db.client.QueryContext(ctx, selectPeople, dataLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +120,6 @@ func (db *Database) Init(ctx context.Context) error {
 
 func (db *Database) queryUsers(ctx context.Context, query string, arg string) ([]*Person, error) {
 	var people []*Person
-	const dataLimit = 10
 	rows, err := db.client.QueryContext(ctx, query, arg, dataLimit)
 	if err != nil {
 		return nil, err
