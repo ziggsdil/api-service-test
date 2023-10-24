@@ -3,11 +3,13 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gookit/slog"
-	"github.com/ziggsdil/api-service-test/pkg/db"
-	"golang.org/x/sync/errgroup"
 	"io"
 	"net/http"
+
+	"github.com/gookit/slog"
+	"golang.org/x/sync/errgroup"
+
+	"github.com/ziggsdil/api-service-test/pkg/db"
 )
 
 const (
